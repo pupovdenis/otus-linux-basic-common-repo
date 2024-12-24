@@ -1,0 +1,9 @@
+server {
+    listen 80;
+    location / { proxy_pass http://frontend/; }
+    location /api/ { proxy_pass http://backend/; }
+    location /monitor/ { proxy_pass http://backend/; }
+}
+upstream frontend { server <Frontend ip>:4200;}
+upstream backend { server <Backend1 ip>:7777; server <Backend2 ip>:7777;}
+upstream monitor { server <Monitor ip>:3000;}
