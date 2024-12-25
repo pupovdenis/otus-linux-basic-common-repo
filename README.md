@@ -176,26 +176,29 @@
 
 | Описание                     | Команда                                                |
 |------------------------------|--------------------------------------------------------|
-| Cоздание файла с переменными | cd ~/project/otus-linux-basic-common-repo/frontend     |
-|                              | cat > .env                                             |
+| Cоздание файла с переменными | cd ~/project/otus-linux-basic-common-repo              |
+|                              | git submodule update --remote --merge                  |
+|                              | cd frontend                                            |
+|                              | sudo cat > .env                                        |
 |                              | PORT=4200                                              |
 |                              | REACT_APP_API_BASE_URL=http://{gateway ip}/api/persons |
-| Установка пакетов приложения | npm install                                            |
-| Сборка приложения            | npm run build                                          |
+| Установка пакетов приложения | sudo npm install                                       |
+| Сборка приложения            | sudo npm run build                                     |
 | Запуск приложения            | screen -S me                                           |
-|                              | npm run start &                                        |
+|                              | sudo npm run start &                                   |
 |                              | curl http://localhost:4200                             |
 |                              | curl http://{Frontend ip}:4200                         |
 
 ### 6. Настройка Gateway:
 
-| Описание               | Команда                                                                              |
-|------------------------|--------------------------------------------------------------------------------------|
-| Настройка конфигурации | sudo nano /etc/nginx/sites-available/default                                         |
-|                        | комментируем блок server, добавляем [sites-available](etc%2Ffiles%2Fsites-available) |
-|                        | sudo nginx -t                                                                        |
-|                        | sudo service nginx restart                                                           |
-|                        | http://{Gateway ip}/                                                                 |
+| Описание                       | Команда                                                                              |
+|--------------------------------|--------------------------------------------------------------------------------------|
+| Настройка конфигурации         | sudo nano /etc/nginx/sites-available/default                                         |
+|                                | комментируем блок server, добавляем [sites-available](etc%2Ffiles%2Fsites-available) |
+|                                | sudo nginx -t                                                                        |
+|                                | sudo service nginx restart                                                           |
+|                                | http://{Monitor ip}/                                                                 |
+| Установка exporter для Monitor | sudo apt install prometheus-node-exporter                                                                |
 
 ##### Настройка сети
 
@@ -203,47 +206,60 @@ todo
 
 ### 7. Настройка Monitor:
 
-| Описание                           | Команда                                                                                                                                                                                                                                             |
-|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Настройка конфигурации             | sudo nano /etc/prometheus/prometheus.yml                                                                                                                                                                                                            |
-|                                    | Добавить <br/>  - job_name: node_gateway <br/> static_configs: <br/>- targets: ['{public gateway ip}:9100'] <br/>- job_name: node_db <br/>static_configs: <br/>- targets: ['{public gateway ip}:9100']                                              |
-| Перезапуск prometheus              | kill -HUP  pid_of_prometheus                                                                                                                                                                                                                        |
-| Установка агента на целевой сервер | sudo apt install prometheus-node-exporter                                                                                                                                                                                                           |
-| Настройка подключений к данным     | http://{Monitor nginx ip}:3000 <br/> > admin/admin > skip<br/><br/> > Home/Connections/Data sources > add Prometheus > save & test<br/><br/> > Dashboards > New > Import > ссылка > Node Exporter Full > ID 1860 в load > привязка источника данных |
+| Описание                           | Команда                                                                                                                                                                                                                                          |
+|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Настройка конфигурации             | sudo nano /etc/prometheus/prometheus.yml                                                                                                                                                                                                         |
+|                                    | Добавить <br/>  - job_name: node_gateway <br/> static_configs: <br/>- targets: ['{gateway ip}:9100']                                                                                                                                             |
+| Перезапуск prometheus              | kill -HUP  {pid prometheus}                                                                                                                                                                                                                      |
+| Установка агента на целевой сервер | sudo apt install prometheus-node-exporter                                                                                                                                                                                                        |
+| Настройка подключений к данным     | http://{Monitor ip}:3000 <br/> > admin/admin > skip<br/><br/> > Home/Connections/Data sources > add Prometheus > Prometheus server URL* = http://localhost:9090 > save & test<br/><br/> > Dashboards > New > Import > ссылка > Node Exporter Full > ID 1860 в load > привязка источника данных |
 
 ### 8. Настройка Logger:
 
-| Описание                            | Команда                                                                                                                                                                                                                                                                  |
-|-------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Настройка elasticsearch             | sudo chmod -R 777 /etc/elasticsearch/                                                                                                                                                                                                                                    |
-|                                     | прописать для jvm лимиты по потреблению ОЗУ:<br/>sudo cat > /etc/elasticsearch/jvm.options.d/jvm.options<br/>-Xms1g<br/>-Xmx1g                                                                                                                                           |
-|                                     | настроить запуск:<br/>	sudo nano /etc/elasticsearch/elasticsearch.yml<br/>		xpack.security.enabled: false<br/>		...<br/>	xpack.security.http.ssl:<br/>		enabled: false<br/>	...<br/>	xpack.security.transport.ssl:<br/>		enabled: false<br/>	...<br/>	http.host: 0.0.0.0 |
-|                                     | sudo systemctl daemon-reload                                                                                                                                                                                                                                             |
-|                                     | sudo systemctl enable --now elasticsearch.service                                                                                                                                                                                                                        |
+Elasticsearch
 
-| Описание                            | Команда                                                                                                                                                                                                                                                                  |
-|-------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Настройка kibana                    | sudo systemctl daemon-reload                                                                                                                                                                                                                                             |
-|                                     | sudo systemctl enable --now kibana.service                                                                                                                                                                                                                               |
-|                                     | настроить запуск:<br/>	sudo chmod -R 777 /etc/kibana/<br/>	sudo nano /etc/kibana/kibana.yml<br/>server.port: 5601<br/> server.host: "0.0.0.0"                                                                                                                            |
-|                                     | sudo systemctl restart kibana                                                                                                                                                                                                                                            |
+| Описание                      | Команда                                                                                                                                                                                                                                                                  |
+|-------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Настройка конфигурации        | sudo chmod -R 777 /etc/elasticsearch/                                                                                                                                                                                                                                    |
+|                               | прописать для jvm лимиты по потреблению ОЗУ:<br/>sudo cat > /etc/elasticsearch/jvm.options.d/jvm.options<br/>-Xms1g<br/>-Xmx1g                                                                                                                                           |
+|                               | настроить запуск:<br/>	sudo nano /etc/elasticsearch/elasticsearch.yml<br/>		xpack.security.enabled: false<br/>		...<br/>	xpack.security.http.ssl:<br/>		enabled: false<br/>	...<br/>	xpack.security.transport.ssl:<br/>		enabled: false<br/>	...<br/>	http.host: 0.0.0.0 |
+|                               | sudo systemctl daemon-reload                                                                                                                                                                                                                                             |
+|                               | sudo systemctl enable --now elasticsearch.service                                                                                                                                                                                                                        |
+|                               | curl http://localhost:9200                                                                                                                                                                                                                                               |
 
-| Описание                            | Команда                                                                                                                                                                                                                                                                  |
-|-------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Настройка logstash                  | sudo systemctl enable --now logstash.service                                                                                                                                                                                                                                                                        |
-|                                     | sudo chmod -R 777 /etc/logstash/                                                                                                                                                                                                                                                                        |
-|                                     | nano /etc/logstash/logstash.yml<br/>path.config: /etc/logstash/conf.d                                                                                                                                                                                                                                                                        |
-| Настройка файлов logstash для nginx | sudo cat > /etc/logstash/conf.d/logstash-nginx-es.conf<br/>[logstash-nginx-es](etc%2Ffiles%2Flogstash-nginx-es)                                                                                                                                                                                                                                                                        |
-|                                     | sudo systemctl restart logstash.service                                                                                                                                                                                                                                                                        |
+Kibana
+
+| Описание                        | Команда                                                                                                                                                                                                                                                                  |
+|---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Настройка конфигурации          | sudo systemctl daemon-reload                                                                                                                                                                                                                                             |
+|                                 | sudo systemctl enable --now kibana.service                                                                                                                                                                                                                               |
+|                                 | настроить запуск:<br/>	sudo chmod -R 777 /etc/kibana/<br/>	sudo nano /etc/kibana/kibana.yml<br/>server.port: 5601<br/> server.host: "0.0.0.0"                                                                                                                            |
+|                                 | sudo systemctl restart kibana                                                                                                                                                                                                                                            |
+
+Logstash
+
+| Описание                            | Команда                                                                                                         |
+|-------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| Настройка конфигурации              | sudo systemctl enable --now logstash.service                                                                    |
+|                                     | sudo chmod -R 777 /etc/logstash/                                                                                |
+|                                     | nano /etc/logstash/logstash.yml<br/>path.config: /etc/logstash/conf.d                                           |
+| Настройка файлов logstash для nginx | sudo cat > /etc/logstash/conf.d/logstash-nginx-es.conf<br/>[logstash-nginx-es](etc%2Ffiles%2Flogstash-nginx-es) |
+|                                     | sudo systemctl restart logstash.service                                                                         |
 
 #### Установка и настройка filebeat на примере nginx
 
-| Описание           | Команда                                                                                                 |
-|--------------------|---------------------------------------------------------------------------------------------------------|
-| Установка filebeat | sudo dpkg -i elk-8.9-deb/filebeat-8.9.1-amd64.deb                                                       |
-| Настройка filebeat | sudo chmod -R 777 /etc/filebeat/                                                                        |
-|                    | sudo nano /etc/filebeat/filebeat.yml <br/>добавить в filebeat.inputs [filebeat](etc%2Ffiles%2Ffilebeat) |
-|                    | sudo systemctl restart filebeat                                                                         |
+Gateway
+
+| Описание           | Команда                                                                                                                                                                                                    |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Установка filebeat | скачать filebeat-8.9.1-amd64.deb с Logger                                                                                                                                                                  |
+|                    | sudo dpkg -i filebeat-8.9.1-amd64.deb                                                                                                                                                                      |
+| Настройка filebeat | sudo chmod -R 777 /etc/filebeat/                                                                                                                                                                           |
+|                    | sudo nano /etc/filebeat/filebeat.yml <br/>добавить в filebeat.inputs [filebeat](etc%2Ffiles%2Ffilebeat)                                                                                                    |
+|                    | sudo systemctl restart filebeat                                                                                                                                                                            |
+| Проверка           | browser http://{Logger ip}:5601 <br/>> Explore on my own > Menu > Discover > Add integrations > Create data view > Name: Nginx, Index patten: weblogs*                                                     |
+|                    | на Gateway:<br/>sudo apt install apache2-utils<br/>ab -n 150 http://{Logger ip}<br/>Management > Stack Management > Index Management > Analytics > Dashboard > Create a dashboard > Create vizualization > |
+
 
 ### Проверка
 

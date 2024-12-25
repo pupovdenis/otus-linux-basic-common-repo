@@ -1,3 +1,4 @@
+Добавить
 - type: filestream
     paths:
         - /var/log/nginx/*.log
@@ -6,7 +7,10 @@
             exclude_files: ['.gz$']
             prospector.scanner.exclude_files: ['.gz$']
 
-    #output.elasticsearch
-        #hosts: ["localhost:9200"]
+Закомментировать
+    output.elasticsearch
+        hosts: ["localhost:9200"]
+
+Раскомментировать/изменить
     output.logstash:
-        hosts: ["localhost:5400"]
+        hosts: ["{Logger ip}:5400"]
