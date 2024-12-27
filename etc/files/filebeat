@@ -2,10 +2,9 @@
 - type: filestream
     paths:
         - /var/log/nginx/*.log
-
-            enabled: true
-            exclude_files: ['.gz$']
-            prospector.scanner.exclude_files: ['.gz$']
+    enabled: true
+    exclude_files: ['.gz$']
+    prospector.scanner.exclude_files: ['.gz$']
 
 Закомментировать
     output.elasticsearch

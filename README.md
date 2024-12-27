@@ -174,20 +174,20 @@
 
 ### 5. Настройка Frontend:
 
-| Описание                     | Команда                                                |
-|------------------------------|--------------------------------------------------------|
-| Cоздание файла с переменными | cd ~/project/otus-linux-basic-common-repo              |
-|                              | git submodule update --remote --merge                  |
-|                              | cd frontend                                            |
-|                              | sudo cat > .env                                        |
-|                              | PORT=4200                                              |
-|                              | REACT_APP_API_BASE_URL=http://{gateway ip}/api/persons |
-| Установка пакетов приложения | sudo npm install                                       |
-| Сборка приложения            | sudo npm run build                                     |
-| Запуск приложения            | screen -S me                                           |
-|                              | sudo npm run start &                                   |
-|                              | curl http://localhost:4200                             |
-|                              | curl http://{Frontend ip}:4200                         |
+| Описание                     | Команда                                         |
+|------------------------------|-------------------------------------------------|
+| Cоздание файла с переменными | cd ~/project/otus-linux-basic-common-repo       |
+|                              | git submodule update --remote --merge           |
+|                              | cd frontend                                     |
+|                              | sudo cat > .env                                 |
+|                              | PORT=4200                                       |
+|                              | REACT_APP_API_BASE_URL=http://{gateway ip}/api  |
+| Установка пакетов приложения | sudo npm install                                |
+| Сборка приложения            | sudo npm run build                              |
+| Запуск приложения            | screen -S me                                    |
+|                              | sudo npm run start &                            |
+|                              | curl http://localhost:4200                      |
+|                              | curl http://{Frontend ip}:4200                  |
 
 ### 6. Настройка Gateway:
 
@@ -197,7 +197,7 @@
 |                                | комментируем блок server, добавляем [sites-available](etc%2Ffiles%2Fsites-available) |
 |                                | sudo nginx -t                                                                        |
 |                                | sudo service nginx restart                                                           |
-|                                | http://{Monitor ip}/                                                                 |
+|                                | http://{Gateway ip}/                                                                 |
 | Установка exporter для Monitor | sudo apt install prometheus-node-exporter                                                                |
 
 ##### Настройка сети
@@ -206,12 +206,12 @@ todo
 
 ### 7. Настройка Monitor:
 
-| Описание                           | Команда                                                                                                                                                                                                                                          |
-|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Настройка конфигурации             | sudo nano /etc/prometheus/prometheus.yml                                                                                                                                                                                                         |
-|                                    | Добавить <br/>  - job_name: node_gateway <br/> static_configs: <br/>- targets: ['{gateway ip}:9100']                                                                                                                                             |
-| Перезапуск prometheus              | kill -HUP  {pid prometheus}                                                                                                                                                                                                                      |
-| Установка агента на целевой сервер | sudo apt install prometheus-node-exporter                                                                                                                                                                                                        |
+| Описание                           | Команда                                                                                                                                                                                                                                                                                        |
+|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Настройка конфигурации             | sudo nano /etc/prometheus/prometheus.yml                                                                                                                                                                                                                                                       |
+|                                    | Добавить <br/>  - job_name: node_gateway <br/> static_configs: <br/>- targets: ['{gateway ip}:9100']                                                                                                                                                                                           |
+| Перезапуск prometheus              | sudo kill -HUP  {pid prometheus}                                                                                                                                                                                                                                                               |
+| Установка агента на целевой сервер | sudo apt install prometheus-node-exporter                                                                                                                                                                                                                                                      |
 | Настройка подключений к данным     | http://{Monitor ip}:3000 <br/> > admin/admin > skip<br/><br/> > Home/Connections/Data sources > add Prometheus > Prometheus server URL* = http://localhost:9090 > save & test<br/><br/> > Dashboards > New > Import > ссылка > Node Exporter Full > ID 1860 в load > привязка источника данных |
 
 ### 8. Настройка Logger:
@@ -250,15 +250,17 @@ Logstash
 
 Gateway
 
-| Описание           | Команда                                                                                                                                                                                                    |
-|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Установка filebeat | скачать filebeat-8.9.1-amd64.deb с Logger                                                                                                                                                                  |
-|                    | sudo dpkg -i filebeat-8.9.1-amd64.deb                                                                                                                                                                      |
-| Настройка filebeat | sudo chmod -R 777 /etc/filebeat/                                                                                                                                                                           |
-|                    | sudo nano /etc/filebeat/filebeat.yml <br/>добавить в filebeat.inputs [filebeat](etc%2Ffiles%2Ffilebeat)                                                                                                    |
-|                    | sudo systemctl restart filebeat                                                                                                                                                                            |
-| Проверка           | browser http://{Logger ip}:5601 <br/>> Explore on my own > Menu > Discover > Add integrations > Create data view > Name: Nginx, Index patten: weblogs*                                                     |
-|                    | на Gateway:<br/>sudo apt install apache2-utils<br/>ab -n 150 http://{Logger ip}<br/>Management > Stack Management > Index Management > Analytics > Dashboard > Create a dashboard > Create vizualization > |
+| Описание           | Команда                                                                                                                                                                                                                   |
+|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Установка filebeat | скачать filebeat-8.9.1-amd64.deb с Logger                                                                                                                                                                                 |
+|                    | sudo dpkg -i filebeat-8.9.1-amd64.deb                                                                                                                                                                                     |
+| Настройка filebeat | sudo chmod -R 777 /etc/filebeat/                                                                                                                                                                                          |
+|                    | sudo nano /etc/filebeat/filebeat.yml <br/>добавить в filebeat.inputs [filebeat](etc%2Ffiles%2Ffilebeat)                                                                                                                   |
+|                    | sudo chmod 600 /etc/filebeat/filebeat.yml                                                                                                                                                                                 |
+|                    | sudo chown root:root /etc/filebeat/filebeat.yml                                                                                                                                                                           |
+|                    | sudo systemctl restart filebeat                                                                                                                                                                                           |
+| Проверка           | browser http://{Logger ip}:5601 <br/>> Explore on my own > Menu > Discover > Add integrations > Create data view > Name: Nginx, Index patten: weblogs*                                                                    |
+|                    | на Gateway:<br/>sudo apt install apache2-utils<br/>ab -n 150 http://{Gateway ip}/<br/><br/>browser Management > Stack Management > Index Management > Analytics > Dashboard > Create a dashboard > Create vizualization > |
 
 
 ### Проверка
